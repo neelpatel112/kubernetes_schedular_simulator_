@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>K8s Scheduler Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+    <meta name="theme-color" content="#0f2027">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <div class="mobile-overlay" id="mobile-overlay">
+        <div class="mobile-message">
+            <i class="fas fa-mobile-alt"></i>
+            <h3>Mobile Optimized</h3>
+            <p>Use two fingers to pinch-zoom if needed</p>
+            <button onclick="closeMobileOverlay()">Got it! <i class="fas fa-check"></i></button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <h1>K8s Scheduler</h1>
+                </div>
+                <button class="mobile-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="menu-header">
+                <h3><i class="fas fa-cogs"></i> Menu</h3>
+                <button onclick="toggleMenu()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="menu-items">
+                <button onclick="createPod()">
+                    <i class="fas fa-plus-circle"></i> Create Pod
+                </button>
+                <button onclick="addNode()">
+                    <i class="fas fa-server"></i> Add Node
+                </button>
+                <button onclick="resetCluster()">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button onclick="showTutorial()">
+                    <i class="fas fa-graduation-cap"></i> Tutorial
+                </button>
+                <button onclick="showExamples()">
+                    <i class="fas fa-list"></i> Examples
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <main class="main-content">
+            <!-- Pod Creator Panel (Collapsible on mobile) -->
+            <div class="panel pod-creator-panel" id="pod-creator-panel">
+                <div class="panel-header" onclick="togglePanel('pod-creator-panel')">
+                    <h3><i class="fas fa-plus-circle"></i> Create Pod</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="panel-content">
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Pod Name</label>
+                        <input type="text" id="pod-name" value="web-server" placeholder="Enter pod name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-microchip"></i> CPU: <span id="cpu-value">1.0</span> cores</label>
+                        <div class="slider-container">
+                            <input type="range" id="pod-cpu" min="0.1" max="4" step="0.1" value="1.0">
+                            <div class="slider-labels">
+                                <span>0.1</span>
+                                <span>4.0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-memory"></i> Memory: <span id="memory-value">512</span> MB</label>
+                        <div class="slider-container">
+                            <input type="range" id="pod-memory" min="128" max="8192" step="128" value="512">
+                            <div class="slider-labels">
+                                <span>128MB</span>
+                                <span>8GB</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" onclick="createPod()">
+                        <i class="fas fa-rocket"></i> Schedule Pod
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cluster Visualization -->
+            <div class="panel cluster-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-server"></i> Cluster Nodes</h3>
+                    <div class="cluster-stats-mobile">
+                        <span><i class="fas fa-cube"></i> <span id="mobile-pod-count">0</span></span>
+                        <span><i class="fas fa-microchip"></i> <span id="mobile-cpu-usage">0%</span></span>
+                        <span><i class="fas fa-memory"></i> <span id="mobile-memory-usage">0%</span></span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="cluster-controls">
+                        <button class="btn btn-secondary" onclick="addNode()">
+                            <i class="fas fa-plus"></i> Add Node
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetCluster()">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <select id="algorithm" class="algorithm-selector">
+                            <option value="spread">Spread</option>
+                            <option value="binpack">Bin Pack</option>
+                            <option value="random">Random</option>
+                        </select>
+                    </div>
+                    
+                    <div id="cluster-nodes" class="nodes-container">
+                        <!-- Nodes will be dynamically added here -->
+                    </div>
+                    
+                    <div class="pending-pods">
+                        <h4><i class="fas fa-clock"></i> Waiting Pods (<span id="queue-count">0</span>)</h4>
+                        <div id="queue-list" class="queue-container">
+                            <div class="empty-queue">
+                                <i class="fas fa-inbox"></i>
+                                <p>No pods waiting</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduler Log -->
+            <div class="panel log-panel" id="log-panel">
+                <div class="panel-header" onclick="togglePanel('log-panel')">
+                    <h3><i class="fas fa-scroll"></i> Scheduler Log</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="panel-content">
+                    <div id="log-entries" class="log-entries">
+                        <div class="log-entry welcome">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Welcome to K8s Scheduler Simulator! Create your first pod to start.</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-block" onclick="clearLog()">
+                        <i class="fas fa-trash"></i> Clear Log
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav">
+            <button onclick="quickCreatePod()">
+                <i class="fas fa-plus"></i>
+                <span>New Pod</span>
+            </button>
+            <button onclick="togglePanel('pod-creator-panel')">
+                <i class="fas fa-sliders-h"></i>
+                <span>Settings</span>
+            </button>
+            <button onclick="togglePanel('log-panel')">
+                <i class="fas fa-history"></i>
+                <span>Log</span>
+            </button>
+            <button onclick="showStats()">
+                <i class="fas fa-chart-bar"></i>
+                <span>Stats</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div class="modal" id="tutorial-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-graduation-cap"></i> How to Use</h3>
+                <button onclick="closeModal('tutorial-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="tutorial-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Create Pods</h4>
+                        <p>Set CPU (0.1-4 cores) and Memory (128MB-8GB) requirements</p>
+                    </div>
+                </div>
+                <div class="tutorial-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Watch Scheduling</h4>
+                        <p>See how scheduler picks nodes based on selected algorithm</p>
+                    </div>
+                </div>
+                <div class="tutorial-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Algorithms</h4>
+                        <p><strong>Spread</strong>: Balance load • <strong>Bin Pack</strong>: Maximize usage • <strong>Random</strong>: Random selection</p>
+                    </div>
+                </div>
+                <div class="tutorial-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Mobile Controls</h4>
+                        <p>Use menu button (☰) for actions • Bottom nav for quick access • Pinch to zoom</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js"></script>
+    <script src="./script.js"></script>
+</body>
+</html> 

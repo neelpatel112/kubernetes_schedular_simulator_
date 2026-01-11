@@ -1,0 +1,26 @@
+{
+  "name": "k8s-scheduler-simulator",
+  "version": "1.0.0",
+  "description": "Mobile-optimized Kubernetes scheduler simulator",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'Static site - no build step required'",
+    "dev": "serve ."
+  },
+  "keywords": [
+    "kubernetes",
+    "scheduler",
+    "simulator",
+    "visualization",
+    "mobile"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+} 
